@@ -13,7 +13,18 @@
 </head>
 <body>
   <h2>Open Tabs</h2>
+  <button id="saveTabsBtn">Save Tabs</button>
+  <button id="newTabBtn">New Tab...</button>
   <div id="tabs"></div>
+  <div id="newTabModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%,0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+    <h3>Add New Tab</h3>
+    <form id="newTabForm">
+      <input type="url" id="newTabUrl" placeholder="Enter URL" style="width:250px;" required />
+      <button type="submit" id="addTabBtn" disabled>Add Tab</button>
+      <button type="button" id="cancelNewTabBtn">Cancel</button>
+    </form>
+    <div id="newTabError" style="color:red; margin-top:8px;"></div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
