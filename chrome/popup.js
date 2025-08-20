@@ -5,8 +5,22 @@ function renderTabsOnCanvas(tabs) {
   const radius = 30;
   const padding = 20;
   tabs.forEach((tab, i) => {
-    const cx = radius + padding + (i * (radius * 2 + padding));
-    const cy = 60;
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const cx = radius + padding + (i * (radius * 2.5 + padding));
+    const cy = 80;
+    // Background rounded rectangle
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', cx - radius - 10);
+    rect.setAttribute('y', cy - radius - 10);
+    rect.setAttribute('rx', 18);
+    rect.setAttribute('ry', 18);
+    rect.setAttribute('width', radius * 2 + 20);
+    rect.setAttribute('height', radius * 2 + 40);
+    rect.setAttribute('fill', '#e3f2fd');
+    rect.setAttribute('stroke', '#90caf9');
+    rect.setAttribute('stroke-width', '2');
+    group.appendChild(rect);
+    // Tab circle
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', cx);
     circle.setAttribute('cy', cy);
@@ -21,16 +35,27 @@ function renderTabsOnCanvas(tabs) {
       // Future: drill-down to tab details
       alert(`Tab: ${tab.title}\nURL: ${tab.url}`);
     });
-    svg.appendChild(circle);
-    // Add tab title below the circle
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', cx);
-    text.setAttribute('y', cy + radius + 16);
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('font-size', '12');
-    text.setAttribute('fill', '#333');
-    text.textContent = tab.title.length > 18 ? tab.title.slice(0, 15) + '...' : tab.title;
-    svg.appendChild(text);
+    group.appendChild(circle);
+    // Tab title
+    const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    titleText.setAttribute('x', cx);
+    titleText.setAttribute('y', cy + radius + 18);
+    titleText.setAttribute('text-anchor', 'middle');
+    titleText.setAttribute('font-size', '14');
+    titleText.setAttribute('fill', '#1976d2');
+    titleText.setAttribute('font-weight', 'bold');
+    titleText.textContent = tab.title.length > 18 ? tab.title.slice(0, 15) + '...' : tab.title;
+    group.appendChild(titleText);
+    // Tab URL
+    const urlText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    urlText.setAttribute('x', cx);
+    urlText.setAttribute('y', cy + radius + 36);
+    urlText.setAttribute('text-anchor', 'middle');
+    urlText.setAttribute('font-size', '11');
+    urlText.setAttribute('fill', '#333');
+    urlText.textContent = tab.url.length > 28 ? tab.url.slice(0, 25) + '...' : tab.url;
+    group.appendChild(urlText);
+    svg.appendChild(group);
   });
   // Future: render tab groups as polygons, collections as containers
 }
@@ -51,6 +76,10 @@ function renderTabs(tabs) {
 
 
 function getSystemInfo() {
+  let extensionVersion = 'dev';
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getManifest) {
+    extensionVersion = chrome.runtime.getManifest().version;
+  }
   return {
     browser: navigator.userAgent,
     language: navigator.language,
@@ -59,7 +88,7 @@ function getSystemInfo() {
       height: window.screen.height
     },
     platform: navigator.platform,
-    extensionVersion: chrome.runtime.getManifest().version
+    extensionVersion
   };
 }
 
@@ -78,9 +107,19 @@ function saveTabs(tabs) {
     extensionVersion: systemInfo.extensionVersion,
     // Future: userId, groupId, notes, tags, etc.
   }));
-  chrome.storage.local.set({ savedTabs: tabObjects }, () => {
-    alert('Tabs saved!');
-  });
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.set({ savedTabs: tabObjects }, () => {
+      alert('Tabs saved!');
+    });
+  } else {
+    // Fallback for local development: use localStorage
+    try {
+      localStorage.setItem('savedTabs', JSON.stringify(tabObjects));
+      alert('Tabs saved locally!');
+    } catch (e) {
+      alert('Error saving tabs locally.');
+    }
+  }
 }
 
 
